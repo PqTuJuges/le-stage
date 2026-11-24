@@ -7,7 +7,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   ci:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          ref: ${{ github.head_ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
@@ -33,6 +33,21 @@ jobs:
 
       - name: Setup Application
         run: composer setup
+
+      - name: Fix PHP code style
+        if: github.event_name == 'pull_request'
+        run: ./vendor/bin/pint
+
+      - name: Fix front-end code style
+        if: github.event_name == 'pull_request'
+        run: npx vp check --fix
+
+      - name: Commit fixed files
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "Fixes coding style"
+          file_pattern: app bootstrap config database resources routes tests
 
       - name: Run CI Checks
         run: composer ci:check
