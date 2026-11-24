@@ -7,4 +7,3 @@ test('about page is public', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('public/About'));
 });
-
